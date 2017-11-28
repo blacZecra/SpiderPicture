@@ -6,17 +6,20 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.example.gefifi.spiderpicture.service.ImageService;
 
 import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -28,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void init(){
         mEt_url = (EditText)findViewById(R.id.et_website);
-        mIv_picture = (ImageView)findViewById(R.id.iv_picture);
+        mIv_picture = (ImageView)findViewById(R.id.img);
         mBtn_get = (Button)findViewById(R.id.btn_get);
     }
 
@@ -38,9 +41,34 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         init();
 
-        FlashBitmapThread flashBitmapThread = new FlashBitmapThread();
-        Thread thread = new Thread(flashBitmapThread);
-        thread.start();
+        String website = "http://img.my.csdn.net/uploads/201404/13/1397393290_5765.jpeg";
+        try{
+            URL url = new URL(website);
+            ArrayList<URL> urlArrayList = new ArrayList<URL>();
+            urlArrayList.add(url);
+            urlArrayList.add(url);
+            urlArrayList.add(url);
+            urlArrayList.add(url);
+            urlArrayList.add(url);
+            urlArrayList.add(url);
+            urlArrayList.add(url);
+            urlArrayList.add(url);
+            urlArrayList.add(url);
+            urlArrayList.add(url);
+            RecyclerView recyclerView = (RecyclerView)findViewById(R.id.recycler_view);
+            LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+            recyclerView.setLayoutManager(layoutManager);
+            ImgAdapter adapter = new ImgAdapter(urlArrayList, bitmap);
+            recyclerView.setAdapter(adapter);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+
+
+        //FlashBitmapThread flashBitmapThread = new FlashBitmapThread();
+        //Thread thread = new Thread(flashBitmapThread);
+        //thread.start();
         handler = new Handler(){
             public void handleMessage(Message msg){
                 super.handleMessage(msg);

@@ -17,10 +17,9 @@
         android:layout_height="wrap_content"
         android:text="Check"/>
 
-    <ImageView
-        android:id="@+id/iv_picture"
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:src ="@drawable/ic_launcher_background"/>
+        android:layout_height="match_parent"/>
 
 </LinearLayout>
