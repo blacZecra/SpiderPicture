@@ -1,9 +1,7 @@
 package com.example.gefifi.spiderpicture;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Handler;
-import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -12,14 +10,16 @@ import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Toast;
 
+import org.jsoup.Connection;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
-import java.io.InputStream;
-import java.lang.reflect.Array;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
     private Button mBtn_get;
     private Bitmap bitmap = null;
     private Handler handler;
-
+    private ArrayList<String> imgUrls;
     public void init(){
         mEt_url = (EditText)findViewById(R.id.et_website);
         mIv_picture = (ImageView)findViewById(R.id.img);
@@ -40,21 +40,26 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         init();
+        imgUrls = new ArrayList<String>();
 
-        String website = "http://img.my.csdn.net/uploads/201404/13/1397393290_5765.jpeg";
+        JsoupThread jsoupThread = new JsoupThread();
+        Thread thread = new Thread(jsoupThread);
+        thread.start();
         try{
-            URL url = new URL(website);
+            thread.join();
+        }catch (InterruptedException e){
+            e.printStackTrace();
+        }
+        System.out.println("urls:------------>"+imgUrls);
+        //String website = "https://i0.hdslb.com/bfs/vc/e52b067e1661f21bc64c92cae298954182194250.jpg";
+        try{
+            //URL url = new URL(website);
             ArrayList<URL> urlArrayList = new ArrayList<URL>();
-            urlArrayList.add(url);
-            urlArrayList.add(url);
-            urlArrayList.add(url);
-            urlArrayList.add(url);
-            urlArrayList.add(url);
-            urlArrayList.add(url);
-            urlArrayList.add(url);
-            urlArrayList.add(url);
-            urlArrayList.add(url);
-            urlArrayList.add(url);
+            for (String imgUrl : imgUrls){
+                Log.d("URL------------>",imgUrl);
+                URL url1 = new URL(imgUrl);
+                urlArrayList.add(url1);
+            }
             RecyclerView recyclerView = (RecyclerView)findViewById(R.id.recycler_view);
             LinearLayoutManager layoutManager = new LinearLayoutManager(this);
             recyclerView.setLayoutManager(layoutManager);
@@ -63,42 +68,39 @@ public class MainActivity extends AppCompatActivity {
         }catch (Exception e){
             e.printStackTrace();
         }
-
-
-
-        //FlashBitmapThread flashBitmapThread = new FlashBitmapThread();
-        //Thread thread = new Thread(flashBitmapThread);
-        //thread.start();
-        handler = new Handler(){
-            public void handleMessage(Message msg){
-                super.handleMessage(msg);
-                if (bitmap != null){
-                    Log.i("MainActivity", "Handler not null");
-                    mIv_picture.setImageBitmap(bitmap);
-                }else {
-                    Toast.makeText(MainActivity.this, "url不对哦@_@~~~!", Toast.LENGTH_LONG).show();
-                }
-            }
-        };
     }
 
-    class FlashBitmapThread implements Runnable{
+    class JsoupThread implements Runnable{
         public void run(){
-            //String website = mEt_url.getText().toString();
-            String website = "http://img.my.csdn.net/uploads/201404/13/1397393290_5765.jpeg";
+            String url = "http://desk.zol.com.cn/dongman/good_1.html";
+            Connection conn = Jsoup.connect(url);
+            // 修改http包中的header,伪装成浏览器进行抓取
+            conn.header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:32.0) Gecko/    20100101 Firefox/32.0");
             try{
-                URL url = new URL(website);
-                InputStream inputStream = url.openStream();
-                bitmap = BitmapFactory.decodeStream(inputStream);
-                handler.sendEmptyMessage(0);
-
-            }catch (Exception e){
+                Document doc = conn.get();
+                // 获取tbody元素下的所有tr元素
+                Elements elements = doc.select("ul li a[href]");
+                Elements imgElements = elements.select(".pic");
+                for(Element element : imgElements) {
+                    StringBuilder preUrl = new StringBuilder("http://desk.zol.com.cn");
+                    String imgUrl = element.attr("href");
+                    preUrl.append(imgUrl);
+                    Connection conn2 = Jsoup.connect(preUrl.toString());
+                    conn2.header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:32.0) Gecko/    20100101 Firefox/32.0");
+                    Document doc2 = conn2.get();
+                    Elements elements2 = doc2.select("img");
+                    for(Element element2 : elements2){
+                        String imgID = element2.attr("id");
+                        if(imgID.equals("bigImg")){
+                            System.out.println(element2.attr("src"));
+                            imgUrls.add(element2.attr("src"));
+                        }
+                    }
+                }
+            }catch (IOException e){
                 e.printStackTrace();
             }
 
         }
     }
-
-
-
 }
