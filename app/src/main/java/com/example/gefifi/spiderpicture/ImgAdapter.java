@@ -52,7 +52,7 @@ public class ImgAdapter extends RecyclerView.Adapter<ImgAdapter.ViewHolder>{
                     InputStream inputStream = url.openStream();
                     bitmap = BitmapFactory.decodeStream(inputStream);
                     if (bitmap != null){
-                        Log.i("MainActivity", "Handler not null");
+                        Log.i("MainActivity", "Handler not null~~~~~~~~~~~~");
                         holder.img.setImageBitmap(bitmap);
                     }else {
                         Log.i("ImgAdapter","url为空");
