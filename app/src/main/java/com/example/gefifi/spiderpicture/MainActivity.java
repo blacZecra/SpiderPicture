@@ -29,15 +29,12 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final int SET_ADAPTER = 1;
-
     private Bitmap bitmap = null;
     private ArrayList<String> imgUrls;
     public SwipeRefreshLayout swipeRefresh;
     private ImgAdapter adapter;
     private DrawerLayout myDrawer;
     private static String url;
-    private Handler handler;
     private RecyclerView recyclerView;
 
     private ListView imgClassList;
@@ -75,7 +72,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 String imgClass = imgClasses[i];
-                //System.out.println(imgClass);
                 if (imgClass.equals("风景")){
                     url = "http://desk.zol.com.cn/fengjing/hot_1.html";
                 }else if (imgClass.equals("动漫")){
@@ -87,27 +83,17 @@ public class MainActivity extends AppCompatActivity {
                 }else{
                     url = "http://desk.zol.com.cn/youxi/hot_1.html";
                 }
-                Thread changeClassThread = new Thread(new Runnable() {
+                myDrawer.closeDrawers();
+                new Thread(new Runnable() {
                     @Override
                     public void run() {
                         getPicture();
                     }
-                });
-                changeClassThread.start();
-                try{
-                    changeClassThread.join();
-                    adapter.notifyDataSetChanged();
-                    recyclerView.setAdapter(adapter);
-                }catch (InterruptedException e){
-                    e.printStackTrace();
-                }
-
+                }).start();
             }
         });
 
         getPicture();
-
-        recyclerView.setAdapter(adapter);
 
         swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -117,6 +103,15 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg){
+            super.handleMessage(msg);
+            adapter.notifyDataSetChanged();
+            recyclerView.setAdapter(adapter);
+        }
+    };
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item){
@@ -138,16 +133,13 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         try{
-            //URL url = new URL(website);
             ArrayList<URL> urlArrayList = new ArrayList<URL>();
             for (String imgUrl : imgUrls){
                 URL url1 = new URL(imgUrl);
                 urlArrayList.add(url1);
             }
             adapter = new ImgAdapter(urlArrayList, bitmap);
-            Message message = new Message();
-            message.what = SET_ADAPTER;
-            handler.sendMessage(message);
+            handler.sendEmptyMessage(0);
             swipeRefresh.setRefreshing(false);
         }catch (Exception e){
             e.printStackTrace();
